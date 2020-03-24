@@ -42,6 +42,7 @@ packages <- c(
   'ggraph',
   'ggthemes',
   'maps',
+  'rgeos',
   'sf',
   'tidyr',
   'concaveman',
@@ -121,6 +122,15 @@ ggplot(faithful) +
 Hint 1: transparency is controlled with `alpha`, and shape with `shape`
 Hint 2: rememberthe difference between mapping and setting aesthetics
 
+```{r}
+ggplot(faithful) +
+  geom_point(
+    aes(x = eruptions, y = waiting), 
+    shape = "square", alpha = 1/2, size = 3
+    )
+```
+
+
 * * *
 
 Colour the two distributions in the histogram with different colours
@@ -133,6 +143,12 @@ ggplot(faithful) +
 Hint 1: For polygons you can map two different colour-like aesthetics: `colour` 
 (the colour of the stroke) and `fill` (the fill colour)
 
+```{r}
+ggplot(faithful) +
+  geom_histogram(aes(x = eruptions, fill = eruptions > 3))
+```
+
+
 * * *
 
 Colour the distributions in the histogram by whether `waiting` is above or below 
@@ -140,11 +156,17 @@ Colour the distributions in the histogram by whether `waiting` is above or below
 
 ```{r}
 ggplot(faithful) + 
-  geom_histogram(aes(x = eruptions))
+  geom_histogram(aes(x = eruptions, fill = waiting > 60))
 ```
 
 Change the plot above by setting `position = 'dodge'` in `geom_histogram()` 
 (while keeping the colouring by `waiting`). What do `position` control? 
+
+```{r}
+ggplot(faithful) + 
+  geom_histogram(aes(x = eruptions, fill = waiting > 60), position = "dodge")
+```
+
 
 * * *
 
@@ -155,6 +177,13 @@ how to draw straight lines from a slope and intercept.
 ggplot(faithful) + 
   geom_point(aes(x = eruptions, y = waiting))
 ```
+
+```{r}
+ggplot(faithful) + 
+  geom_point(aes(x = eruptions, y = waiting)) +
+  geom_vline(xintercept =  3)
+```
+
 
 ### Stat
 We will use the `mpg` dataset giving information about fuel economy on different 
@@ -223,6 +252,12 @@ ggplot(mpg) +
   geom_bar(aes(x = class))
 ```
 
+```{r}
+ggplot(mpg) +
+  stat_count(aes(x = class))
+```
+
+
 * * *
 
 Use `stat_summary()` to add a red dot at the mean `hwy` for each group
@@ -233,6 +268,13 @@ ggplot(mpg) +
 ```
 
 Hint: You will need to change the default geom of `stat_summary()`
+
+```{r}
+ggplot(mpg) + 
+  geom_jitter(aes(x = class, y = hwy), width = 0.2) +
+  stat_summary(aes(x = class, y = hwy), fun = "mean", color = "red")
+```
+
 
 ### Scales
 Scales define how the mapping you specify inside `aes()` should happen. All 
@@ -271,6 +313,12 @@ ggplot(mpg) +
   scale_colour_brewer(type = 'qual')
 ```
 
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, colour = class)) + 
+  scale_colour_brewer(palette = 'Set1')
+```
+
 * * *
 
 Modify the code below to create a bubble chart (scatterplot with size mapped to
@@ -280,15 +328,46 @@ amount of cylinders (4, 5, 6, and 8) are present in the legend.
 ```{r}
 ggplot(mpg) + 
   geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
-  scale_colour_brewer(type = 'qual') + 
-  scale_size_area(breaks = c(4, 5, 6, 8))
+  scale_colour_brewer(type = 'qual')
 ```
 
 Hint: The `breaks` argument in the scale is used to control which values are
 present in the legend.
 
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
+  scale_colour_brewer(type = 'qual') + 
+  scale_size_area(breaks = c(4, 5, 6, 8))
+```
+
 Explore the different types of size scales available in ggplot2. Is the default
 the most appropriate here?
+
+```{r}
+# four is tiny compared to other groups
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
+  scale_colour_brewer(type = 'qual') + 
+  scale_size(breaks = c(4, 5, 6, 8))
+```
+
+```{r}
+# smaller differences between groups
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
+  scale_colour_brewer(type = 'qual') + 
+  scale_radius(breaks = c(4, 5, 6, 8))
+```
+
+```{r}
+# larger bubbles
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
+  scale_colour_brewer(type = 'qual') + 
+  scale_radius(breaks = c(4, 5, 6, 8), range = c(4, 10))
+```
+
 
 * * *
 
@@ -298,6 +377,11 @@ variable, but to the continuous `cty` variable. What happens to the guide?
 ```{r}
 ggplot(mpg) + 
   geom_point(aes(x = displ, y = hwy, colour = class, size = cty))
+```
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, colour = cty, size = cty))
 ```
 
 * * *
@@ -312,6 +396,13 @@ guide type?
 ggplot(mpg) + 
   geom_point(aes(x = displ, y = hwy, colour = cty, size = cty))
 ```
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, colour = cty, size = cty)) +
+  guides(color = "legend")
+```
+
 
 ### Facets
 The facet defines how data is split among panels. The default facet 
@@ -342,6 +433,24 @@ ggplot(mpg) +
   facet_wrap(~ drv)
 ```
 
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy)) + 
+  facet_wrap(~ drv, scales = "free_x")
+```
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy)) + 
+  facet_wrap(~ drv, scales = "free_y")
+```
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy)) + 
+  facet_wrap(~ drv, scales = "free")
+```
+
 * * *
 
 Usually the space occupied by each panel is equal. This can create problems when
@@ -357,6 +466,19 @@ ggplot(mpg) +
 Use the `space` argument in `facet_grid()` to change the plot above so each bar 
 has the same width again.
 
+```{r}
+ggplot(mpg) + 
+  geom_bar(aes(y = manufacturer)) + 
+  facet_grid(class ~ ., scales = "free_y")
+```
+
+```{r}
+ggplot(mpg) + 
+  geom_bar(aes(y = manufacturer)) + 
+  facet_grid(class ~ ., scales = "free_y", space = "free_y")
+```
+
+
 * * *
 
 Facets can be based on multiple variables by adding them together. Try to 
@@ -368,9 +490,16 @@ ggplot(mpg) +
   facet_grid(year ~ drv)
 ```
 
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy)) + 
+  facet_wrap(~ year + drv)
+```
+
+
 ### Coordinates
 The coordinate system is the fabric you draw your layers on in the end. The 
-default `coord_cartesion provides the standard rectangular x-y coordinate 
+default `coord_cartesion` provides the standard rectangular x-y coordinate 
 system. Changing the coordinate system can have dramatic effects
 ```{r}
 ggplot(mpg) + 
@@ -393,7 +522,7 @@ ggplot(mpg) +
   scale_y_continuous(limits = c(0, 40))
 ```
 
-and in the coord. You usually want the latter as it avoids changing the plottet
+and in the coord. You usually want the latter as it avoids changing the plotted
 data
 
 ```{r}
@@ -401,6 +530,8 @@ ggplot(mpg) +
   geom_bar(aes(x = class)) + 
   coord_cartesian(ylim = c(0, 40))
 ```
+
+**Always zoom in the coordinate system**
 
 #### Exercises
 In the same way as limits can be set in both the positional scale and the coord,
@@ -411,6 +542,19 @@ and then using `coord_trans()`. Compare the results — how do they differ?
 ```{r}
 ggplot(mpg) + 
   geom_point(aes(x = hwy, y = displ))
+```
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = hwy, y = displ)) +
+  scale_y_continuous(trans = "log")
+```
+
+```{r}
+# better breaks, calculated on the non-transformed data
+ggplot(mpg) + 
+  geom_point(aes(x = hwy, y = displ)) +
+  coord_trans(y = "log")
 ```
 
 * * *
@@ -464,12 +608,12 @@ ggplot(mpg) +
   theme_minimal() + 
   theme(
     text = element_text('Avenir Next Condensed'),
-    strip.text = element_text(face = 'bold', hjust = 0),
+    strip.text = element_text(face = 'bold', hjust = 0), # inherits avenir
     plot.caption = element_text(face = 'italic'),
     panel.grid.major = element_line('white', size = 0.5),
     panel.grid.minor = element_blank(),
     panel.grid.major.y = element_blank(),
-    panel.ontop = TRUE
+    panel.ontop = TRUE # puts grid lines on top of the bars
   )
 ```
 
@@ -489,6 +633,7 @@ ggplot(mpg) +
        x = 'Number of cars',
        y = NULL)
 ```
+
 
 ## Extensions
 While ggplot2 comes with a lot of batteries included, the extension ecosystem 
