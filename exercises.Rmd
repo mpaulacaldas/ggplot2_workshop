@@ -34,12 +34,9 @@ packages <- c(
   'patchwork',
   'ggraph',
   'dplyr',
-  'patchwork',
   'gganimate',
   'gifski',
-  'ggrepel',
   'ggforce',
-  'ggraph',
   'ggthemes',
   'maps',
   'rgeos',
@@ -327,7 +324,7 @@ amount of cylinders (4, 5, 6, and 8) are present in the legend.
 
 ```{r}
 ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
+  geom_point(aes(x = displ, y = hwy, colour = class)) +
   scale_colour_brewer(type = 'qual')
 ```
 
