@@ -675,6 +675,16 @@ p_all + plot_annotation(
 )
 ```
 
+**TODO**: He says that you can also use patchwork with base R plots, but the code chunk below doesn't return anything.
+
+```{r}
+b1 <- plot(pressure)
+b2 <- plot(cars)
+b1 + b2
+```
+
+The `&` allows us to modify all plots in our collection, the `+` operator will only work on the last layer.
+
 #### Excercises
 Patchwork will assign the same amount of space to each plot by default, but this
 can be controlled with the `widths` and `heights` argument in `plot_layout()`. 
@@ -688,6 +698,12 @@ p <- ggplot(mtcars) +
 p + p + p
 ```
 
+```{r}
+p + p + p + plot_layout(widths = c(1, 2, 1)) # make middle one twice as big
+p + p + p + plot_layout(widths = unit(c(5, 1, 1), c("cm", "null", "null")))
+```
+
+
 * * *
 
 The `&` operator can be used with any type of ggplot2 object, not just themes.
@@ -699,6 +715,10 @@ p1 <- ggplot(mtcars[mtcars$gear == 3,]) +
 p2 <- ggplot(mtcars[mtcars$gear == 4,]) + 
   geom_point(aes(x = disp, y = mpg))
 p1 + p2
+```
+
+```{r}
+p1 + p2 & scale_y_continuous(limits = c(10, 40))
 ```
 
 * * *
@@ -721,6 +741,26 @@ AA#
 #BB
 C##
 '
+p1 + p2 + p3 + plot_layout(design = layout)
+```
+
+We can use numbers to create the layout too.
+
+```{r}
+layout <- '
+11#
+#22
+3##
+'
+p1 + p2 + p3 + plot_layout(design = layout)
+```
+
+```{r}
+layout <- c(
+  area(1, 1),
+  area(1, 3, 3),
+  area(3, 1, 3, 2)
+)
 p1 + p2 + p3 + plot_layout(design = layout)
 ```
 
@@ -752,6 +792,9 @@ ggplot(mpg) +
   exit_fade()
 ```
 
+- You can use `patchwork::wrap_plots()` if you have many plots that you are producing programmatically and/or you don't know how many plots you will have in total.
+- At the moment, you can't use patchwork to combine animations.
+
 #### Exercises
 The animation below will animate between points showing cars with different 
 cylinders.
@@ -768,6 +811,22 @@ default the group aesthetic is set to the same value, so observations are
 matched by their position (first row of 4 cyl is matched to first row of 5 cyl 
 etc.). This is clearly wrong here (why?). Add a mapping to the `group` aesthetic
 to ensure that points do not move between the different states.
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, group = seq_len(nrow(mpg)))) + 
+  ggtitle("Cars with {closest_state} cylinders") + 
+  transition_states(factor(cyl))
+```
+
+If you have a colour mapping, then you are not required to do this because the group aesthetic will be derived from this aesthetic.
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy, color = factor(cyl))) + 
+  ggtitle("Cars with {closest_state} cylinders") + 
+  transition_states(factor(cyl))
+```
 
 * * *
 
@@ -798,6 +857,14 @@ ggplot(mpg2) +
   geom_point(aes(x = displ, y = value)) + 
   ggtitle("{if (closest_state == 'cty') 'Efficiency in city' else 'Efficiency on highway'}") + 
   transition_states(name)
+```
+
+```{r}
+ggplot(mpg2) + 
+  geom_point(aes(x = displ, y = value)) + 
+  ggtitle("{if (closest_state == 'cty') 'Efficiency in city' else 'Efficiency on highway'}") + 
+  transition_states(name) +
+  ease_aes(y = "cubic-in-out")
 ```
 
 ### Annotation
@@ -849,6 +916,38 @@ ggplot(mtcars2, aes(x = disp, y = mpg)) +
   geom_text_repel(aes(label = label))
 ```
 
+```{r}
+mtcars2 <- mtcars
+mtcars2$label <- rownames(mtcars2)
+points_to_label <- sample(nrow(mtcars), 10)
+ggplot(mtcars2, aes(x = disp, y = mpg)) + 
+  geom_point() + 
+  geom_text_repel(aes(label = label), data = mtcars2[points_to_label, ])
+```
+
+There is still overlap:
+
+```{r}
+mtcars2 <- mtcars
+mtcars2$label <- rownames(mtcars2)
+points_to_label <- sample(nrow(mtcars), 10)
+ggplot(mtcars2, aes(x = disp, y = mpg)) + 
+  geom_point() + 
+  geom_text_repel(aes(label = label), data = mtcars2[points_to_label, ])
+```
+
+Correct way to do things:
+
+```{r}
+mtcars2 <- mtcars
+mtcars2$label <- rownames(mtcars2)
+points_to_label <- sample(nrow(mtcars), 10)
+mtcars2$label[-points_to_label] <- ""
+ggplot(mtcars2, aes(x = disp, y = mpg)) + 
+  geom_point() + 
+  geom_text_repel(aes(label = label))
+```
+
 * * *
 
 Explore the documentation for `geom_text_repel`. Find a way to ensure that the 
@@ -860,6 +959,14 @@ mtcars2$label[1:10] <- rownames(mtcars2)[1:10]
 ggplot(mtcars2, aes(x = disp, y = mpg)) + 
   geom_point() + 
   geom_text_repel(aes(label = label))
+```
+
+```{r}
+mtcars2$label <- ""
+mtcars2$label[1:10] <- rownames(mtcars2)[1:10]
+ggplot(mtcars2, aes(x = disp, y = mpg)) + 
+  geom_point() + 
+  geom_text_repel(aes(label = label), direction = "y")
 ```
 
 * * *
@@ -874,6 +981,56 @@ ggplot(mtcars, aes(x = disp, y = mpg)) +
                         label = '4 gear cars'))
 ```
 
+```{r}
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_circle(aes(filter = gear == 4,
+                        label = '4 gear cars'))
+
+# we can turn off the clipping also with ggplot2
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_circle(aes(filter = gear == 4,
+                        label = '4 gear cars')) +
+  coord_cartesian(clip = "off")
+```
+
+```{r}
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_rect(aes(filter = gear == 4,
+                        label = '4 gear cars'))
+
+# remove the rounded corners
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_rect(aes(filter = gear == 4,
+                        label = '4 gear cars'), radius = 0)
+```
+
+```{r}
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_hull(aes(filter = gear == 4,
+                        label = '4 gear cars'))
+
+# you can play with the concavity of the hull area
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_hull(aes(filter = gear == 4,
+                        label = '4 gear cars'), concavity = 10)
+
+# you can also use groups
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_hull(aes(fill = factor(gear), label = gear))
+
+# keep the groups, but remove the fill and the hulls
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point() + 
+  geom_mark_hull(aes(group = factor(gear), label = gear), fill = NA, color = NA)
+```
+
 ### Networks
 ggplot2 has been focused on tabular data. Network data in any shape and form is
 handled by ggraph
@@ -883,6 +1040,11 @@ library(ggraph)
 library(tidygraph)
 graph <- create_notable('zachary') %>% 
   mutate(clique = as.factor(group_infomap()))
+
+ggraph(graph) + 
+  geom_edge_link() + 
+  geom_node_point(aes(color = clique), size = 2)
+
 ggraph(graph) + 
   geom_mark_hull(aes(x, y, fill = clique)) + 
   geom_edge_link() + 
