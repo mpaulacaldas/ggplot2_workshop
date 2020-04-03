@@ -1,14 +1,5 @@
 # Drawing Anything with ggplot2
 
-*Workshop material*
-
-This repository collects material for a ~4 hour workshop first taught at celebRation2020 in Copenhagen
-
-[Workshop Video on YouTube](https://www.youtube.com/watch?v=h29g21z0a68)
-
-
-## :writing_hand: María Paula's notes
-
-- `count()` has a `name` argument.
-- `after_stat()` replaces `stat()`, which in turn had replaced things like `..prop..`.
-- For bubble charts, `scale_radius()` > `scale_size()` > `scale_size_area()`
+- [Thomas Lin Pedersen](https://twitter.com/thomasp85)'s [original repo](https://github.com/thomasp85/ggplot2_workshop)
+- [Exercises with my notes](exercises.md)
+- YouTube Live Stream, [part 1](https://www.youtube.com/watch?v=h29g21z0a68) and [part 2](https://www.youtube.com/watch?v=0m4yywqNPVY).
