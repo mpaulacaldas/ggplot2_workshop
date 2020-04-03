@@ -1,10 +1,12 @@
 ---
 title: "ggplot2 examples and exercises"
-output: html_document
+output: 
+  md_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
 ```
 
 This document contains all the code that is displayed during the workshop. The
